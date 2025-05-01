@@ -1,0 +1,93 @@
+Halt = False
+message1 = Event()
+myVariable = 0
+Axis4Mod = 0
+XGhost = 0
+ZGhost = 0
+RotationClock = 0
+LeftWheelsVelocity = 0
+RightWheelsVelocity = 0
+ArcRadius = 0
+Velocity = 0
+LeftWheelsDiff = 0
+RightWheelsDiff = 0
+SideBrainRot = 0
+Side = 0
+
+def Setall0():
+    global Halt, message1, myVariable, Axis4Mod, XGhost, ZGhost, RotationClock, LeftWheelsVelocity, RightWheelsVelocity, ArcRadius, Velocity, LeftWheelsDiff, RightWheelsDiff, SideBrainRot, Side
+    LeftWheelRot.set_position(0, DEGREES)
+    RightWheelRot.set_position(0, DEGREES)
+    SideRot.set_position(0, DEGREES)
+    LeftWheels.set_position(0, DEGREES)
+    RightWheels.set_position(0, DEGREES)
+
+def when_started1():
+    global Halt, message1, myVariable, Axis4Mod, XGhost, ZGhost, RotationClock, LeftWheelsVelocity, RightWheelsVelocity, ArcRadius, Velocity, LeftWheelsDiff, RightWheelsDiff, SideBrainRot, Side
+    while True:
+        RightWheels.spin(FORWARD)
+        LeftWheels.spin(FORWARD)
+        wait(5, MSEC)
+
+def when_started2():
+    global Halt, message1, myVariable, Axis4Mod, XGhost, ZGhost, RotationClock, LeftWheelsVelocity, RightWheelsVelocity, ArcRadius, Velocity, LeftWheelsDiff, RightWheelsDiff, SideBrainRot, Side
+    myVariable = 0.6
+    Side = 0.5
+    Setall0()
+    while True:
+        LeftWheelsDiff = LeftWheels.position(DEGREES) - LeftWheelRot.position(DEGREES) * myVariable
+        RightWheelsDiff = RightWheels.position(DEGREES) - RightWheelRot.position(DEGREES) * myVariable
+        SideBrainRot = LeftWheelRot.position(DEGREES) * Side
+        if math.fabs(LeftWheelsDiff) > 60 or math.fabs(RightWheelsDiff) > 60:
+            RightWheels.spin_for(FORWARD, RightWheelsDiff, DEGREES, wait=False)
+            LeftWheels.spin_for(FORWARD, LeftWheelsDiff, DEGREES, wait=False)
+            Setall0()
+        if math.fabs(SideBrainRot) > 10:
+            while not math.fabs(Gyroo.heading(DEGREES) - 90 * (math.fabs(SideBrainRot) / SideBrainRot)) < 5:
+                LeftWheels.spin(REVERSE)
+                RightWheels.spin(REVERSE)
+                wait(5, MSEC)
+            RightWheels.spin_for(REVERSE, SideBrainRot, DEGREES, wait=False)
+            LeftWheels.spin_for(FORWARD, SideBrainRot, DEGREES)
+            while not math.fabs(Gyroo.heading(DEGREES)) < 5:
+                LeftWheels.spin(REVERSE)
+                RightWheels.spin(REVERSE)
+                wait(5, MSEC)
+        wait(5, MSEC)
+
+def when_started3():
+    global Halt, message1, myVariable, Axis4Mod, XGhost, ZGhost, RotationClock, LeftWheelsVelocity, RightWheelsVelocity, ArcRadius, Velocity, LeftWheelsDiff, RightWheelsDiff, SideBrainRot, Side
+    while True:
+        if controller_1.buttonUp.pressing():
+            LeftWheels.set_velocity(150, RPM)
+            RightWheels.set_velocity(-150, RPM)
+        else:
+            if controller_1.buttonDown.pressing():
+                LeftWheels.set_velocity(-150, RPM)
+                RightWheels.set_velocity(150, RPM)
+            else:
+                LeftWheels.set_velocity(((Axis4Mod + controller_1.axis3.position()) * 5), RPM)
+                RightWheels.set_velocity(((Axis4Mod - controller_1.axis3.position()) * 5), RPM)
+                LeftWheelsVelocity = (Axis4Mod + controller_1.axis3.position()) * -5
+                RightWheelsVelocity = (Axis4Mod + controller_1.axis3.position()) * -5
+        wait(5, MSEC)
+
+def when_started4():
+    global Halt, message1, myVariable, Axis4Mod, XGhost, ZGhost, RotationClock, LeftWheelsVelocity, RightWheelsVelocity, ArcRadius, Velocity, LeftWheelsDiff, RightWheelsDiff, SideBrainRot, Side
+    while True:
+        if controller_1.axis4.position() > 0:
+            Axis4Mod = (math.sqrt(math.fabs(controller_1.axis4.position())) * 1) * 13
+        else:
+            Axis4Mod = (math.sqrt(math.fabs(controller_1.axis4.position())) * -1) * 13
+        wait(5, MSEC)
+
+def when_started5():
+    global Halt, message1, myVariable, Axis4Mod, XGhost, ZGhost, RotationClock, LeftWheelsVelocity, RightWheelsVelocity, ArcRadius, Velocity, LeftWheelsDiff, RightWheelsDiff, SideBrainRot, Side
+    if math.fabs(LeftWheels.position(DEGREES) - RightWheels.position(DEGREES)) < 5:
+        Gyroo.set_heading(0, DEGREES)
+
+ws2 = Thread( when_started2 )
+ws3 = Thread( when_started3 )
+ws4 = Thread( when_started4 )
+ws5 = Thread( when_started5 )
+when_started1()
